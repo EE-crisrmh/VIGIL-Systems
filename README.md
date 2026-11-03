@@ -1,92 +1,96 @@
-# LumaWay
+# vigil systems
+
+**v.i.g.i.l.: visual indoor guard & intrusion locator**
+
+an autonomous drone that patrols a building at night, so a guard doesn't have to walk it alone.
+
+*working name. the project was previously called port, then lumaway.*
 
 ---
 
-## The Problem
+## the problem
 
-Every year, thousands of hikers get lost on trails across the United States. Terrain looks the same in every direction. Cell service is gone. Panic sets in. Search and rescue teams can take hours to respond, and in the mountains, hours matter.
+overnight security is risky and expensive. a guard patrolling a dark building alone can run into an intruder with no backup, and every overnight post is a recurring cost. fixed cameras and alarms can report that something happened, but they can't go and look.
 
----
-
-## What LumaWay Does
-
-LumaWay is an autonomous drone system built for one purpose: get a lost hiker back on the trail.
-
-Here's how it works:
-
-1. **Before the hike**, the hiker opens the LumaWay app and starts a session. The app passively records their GPS trail as they walk in, no interaction needed, just like a fitness tracker running in the background.
-
-2. **If they get lost**, they hit the SOS button. The app sends their current GPS location and their recorded trail path to the LumaWay ground station.
-
-3. **The drone launches autonomously**, navigates to the hiker's GPS coordinates, and locates them.
-
-4. **LumaWay leads them out.** The drone flies the recorded trail path in reverse, slowly, at walking pace, using a bright LED and audio signal to guide the hiker back to the trailhead. Follow the light. That's it.
-
-No payload to drop. No complex robotics. Just a reliable, visible guide in the sky when you need it most.
+vigil is built to fill that gap: a drone that checks the building for you, verifies what tripped an alarm, and gets a photo to the people who need it.
 
 ---
 
-## Why a Drone
+## what vigil does
 
-A drone can cover terrain a person can't. It flies over downed trees, river crossings, and steep ridgelines. It doesn't get lost. It doesn't get tired. And it can reach a hiker in minutes rather than hours.
+1. **patrols on its own.** each drone covers one floor. the building is mapped and divided into zones, and a state machine picks the next waypoint at random, weighted toward zones that haven't been visited recently. no fixed route means no predictable gaps.
+2. **sees in the dark.** thermal imaging and lidar detect people, and the classifier separates a person from an animal or a misplaced object.
+3. **responds.** on a likely intruder, the drone takes a photo, triggers the building's alarm system, and notifies the property manager.
+4. **stays supervised.** a remote operator can watch and take over any drone at any time. guards keep their jobs, they just do them from somewhere safe.
 
-LumaWay isn't trying to replace search and rescue, it's a first response that buys time, reduces panic, and gets people moving in the right direction before conditions get worse.
-
----
-
-## The System
-
-LumaWay is built across three integrated components:
-
-**Custom Flight Controller (Hardware)**
-A 4-layer custom PCB built around dual STM32 microcontrollers, one for navigation, one for I/O. Onboard sensors include dual IMUs (ICM-20689, ICM-20602), a barometer (MS5611), and a magnetometer (IST8310) for full attitude and altitude awareness. Designed and manufactured in-house.
-
-**Onboard Computing (Autonomy)**
-An NVIDIA Jetson Nano handles high-level autonomy — GPS waypoint navigation, computer vision for hiker confirmation, and communication with the ground station over a wireless link.
-
-**LumaWay App (Interface)**
-A mobile app for hikers. Records the trail on the way in. Sends SOS with one tap. Shows the drone's live position on a map so rescue coordinators can monitor the situation in real time.
+indoor only. night only. version 1 uses sight only, with no audio. photos are taken on a trigger, not continuously, and there is no face matching.
 
 ---
 
-## Project Goals
+## why a drone
 
-- Demonstrate fully autonomous GPS-guided navigation to a target location
-- Achieve stable hover and guided return-path flight in outdoor conditions
-- Build a functional mobile app with trail recording and SOS capability
-- Integrate onboard vision for hiker detection and confirmation
-- Complete a full end-to-end demo: SOS sent → drone launches → hiker guided back
+a drone can cover a whole floor quickly, reach places a fixed camera can't, and investigate an alarm before anyone is dispatched. one remote operator can supervise several drones.
 
 ---
 
-## Status
+## the system
 
- **In development** - UW Bothell Capstone Project, 2026–2027
+**custom flight controller (hardware)**
+a 4-layer custom pcb with two stm32 microcontrollers (stm32f405 for navigation, stm32f103 for i/o) running px4. onboard sensors: dual imus (icm-20689, icm-20602), a barometer (ms5611), and a magnetometer (ist8310), plus a power monitor and flash for black-box logging. designed in kicad and manufactured in-house.
 
----
+**companion computer (autonomy)**
+an nvidia jetson nano runs patrol logic and person detection, and talks to the flight controller over mavlink.
 
-## Team
+**indoor sensing**
+thermal camera and lidar for detection, plus a gps-free position source for indoor flight.
 
-Built by a four-person Electrical Engineering capstone team at the University of Washington Bothell, supervised by Dr. Hannachi.
-
-- Cris R. Martinez Hernandez
-- Abraham Chen
-- Frank Ma
-- Howard Sin
-
----
-
-## Built With
-
-- STM32F405 / STM32F103 (flight controller MCUs)
-- NVIDIA Jetson Nano (onboard compute)
-- T-Motor MN2806 Antigravity motors
-- KiCad (PCB design)
-- PlatformIO (firmware)
-- Python / OpenCV (computer vision)
-- React Native (mobile app)
+**response and remote operation**
+photo capture, alarm-system integration, and an operator link for live view and manual override.
 
 ---
 
-*LumaWay - your way home made easy*
+## project goals
 
+- stable flight on the custom flight controller
+- gps-free indoor position hold
+- reliable person detection in the dark, with animals and objects filtered out
+- random patrol that covers every zone within a set time window
+- photo capture and alarm trigger on detection
+- end-to-end demo: patrol, detect, photograph, alert, remote takeover
+
+---
+
+## status
+
+in development. uw bothell electrical engineering capstone, 2026 to 2027.
+
+- flight controller v1.0: built and assembled, bring-up in progress
+- test airframe: assembly in progress
+- sensing, patrol logic and alerts: planned
+
+---
+
+## team
+
+built by a four-person electrical engineering capstone team at the university of washington bothell, supervised by dr. hannachi.
+
+- cris r. martinez hernandez
+- abraham chen
+- frank ma
+- howard sin
+
+---
+
+## built with
+
+- stm32f405 / stm32f103 (flight controller mcus)
+- px4 autopilot
+- nvidia jetson nano (onboard compute)
+- ros2 and mavlink
+- opencv / python (perception)
+- kicad (pcb design)
+- platformio (firmware)
+
+---
+
+*vigil systems: always watching, so nobody has to.*
