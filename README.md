@@ -2,7 +2,7 @@
 
 **v.i.g.i.l.: visual indoor guard & intrusion locator**
 
-an autonomous drone that patrols a building at night, so a guard doesn't have to walk it alone.
+an autonomous drone that patrols a building at night alongside the security guard, so nobody has to walk a dark warehouse alone.
 
 *working name. the project was previously called port, then lumaway.*
 
@@ -10,86 +10,109 @@ an autonomous drone that patrols a building at night, so a guard doesn't have to
 
 ## the problem
 
-overnight security is risky and expensive. a guard patrolling a dark building alone can run into an intruder with no backup, and every overnight post is a recurring cost. fixed cameras and alarms can report that something happened, but they can't go and look.
+overnight security is risky and expensive. a guard patrolling a large, dark building alone can run into an intruder with no backup, and at one site we interviewed nobody patrols for 2 to 3 hours between rounds. fixed cameras and alarms can report that something happened, but they can't go and look.
 
-vigil is built to fill that gap: a drone that checks the building for you, verifies what tripped an alarm, and gets a photo to the people who need it.
+vigil fills that gap: a drone that checks the building, finds people in the dark, and alerts the guard. the guard stays in charge. vigil is an extra layer, not a replacement.
+
+target customer: large warehouses.
 
 ---
 
 ## what vigil does
 
-1. **patrols on its own.** each drone covers one floor. the building is mapped and divided into zones, and a state machine picks the next waypoint at random, weighted toward zones that haven't been visited recently. no fixed route means no predictable gaps.
-2. **sees in the dark.** thermal imaging and lidar detect people, and the classifier separates a person from an animal or a misplaced object.
-3. **responds.** on a likely intruder, the drone takes a photo, triggers the building's alarm system, and notifies the property manager.
-4. **stays supervised.** a remote operator can watch and take over any drone at any time. guards keep their jobs, they just do them from somewhere safe.
+1. **patrols on its own.** the building is mapped and divided into zones, and a state machine picks the next waypoint at random, weighted toward zones that haven't been visited recently. no fixed route means no predictable gaps, and every zone gets covered.
+2. **sees in the dark.** a thermal camera and lidar feed an ai person detector.
+3. **flies without gps.** lidar mapping and optical flow hold position indoors.
+4. **alerts a guard.** on a likely person, the drone alerts the guard (alert method is still being decided).
 
-indoor only. night only. version 1 uses sight only, with no audio. photos are taken on a trigger, not continuously, and there is no face matching.
+indoor only. no audio. no face matching. photos are taken on a trigger, not continuously. no remote piloting.
 
 ---
 
-## why a drone
+## scope change (november 2026)
 
-a drone can cover a whole floor quickly, reach places a fixed camera can't, and investigate an alarm before anyone is dispatched. one remote operator can supervise several drones.
+our first custom flight controller (v1.0) failed bring-up on nov 8, 2026: vbat shorted to gnd on all rails. instead of spending the year debugging a board, we changed the plan:
+
+| | before | now |
+| --- | --- | --- |
+| flight controller | custom stm32f405 + stm32f103 board | commercial pixhawk 6c mini running px4 |
+| esc | custom | commercial (readytosky) |
+| compute | jetson nano | jetson orin nano super |
+| indoor position | bluetooth trilateration | 2d lidar mapping + optical flow (bluetooth kept as an optional experiment) |
+| test platform | custom airframe | f450 frame |
+
+the custom flight controller files stay in `hardware/` as a record of what we built and what went wrong.
 
 ---
 
 ## the system
 
-**custom flight controller (hardware)**
-a 4-layer custom pcb with two stm32 microcontrollers (stm32f405 for navigation, stm32f103 for i/o) running px4. onboard sensors: dual imus (icm-20689, icm-20602), a barometer (ms5611), and a magnetometer (ist8310), plus a power monitor and flash for black-box logging. designed in kicad and manufactured in-house.
+**flight controller:** pixhawk 6c mini (stm32h7) running px4. handles stabilization and flight modes.
 
-**companion computer (autonomy)**
-an nvidia jetson nano runs patrol logic and person detection, and talks to the flight controller over mavlink.
+**companion computer:** nvidia jetson orin nano super. runs ros 2, person detection and patrol logic, and talks to the flight controller over mavlink.
 
-**indoor sensing**
-thermal camera and lidar for detection, plus a gps-free position source for indoor flight.
+**sensing:** thermal camera (lepton class, model tbd), 2d lidar (rplidar a1 class), optical flow + rangefinder (matek 3901-l0x class).
 
-**response and remote operation**
-photo capture, alarm-system integration, and an operator link for live view and manual override.
+**airframe:** f450 (about 450 mm) with racerstar br2212 motors and 4 escs. estimated all-up weight about 1.7 kg, ceiling 2-3 kg for the prototype.
 
 ---
 
-## project goals
+## plan and targets
 
-- stable flight on the custom flight controller
-- gps-free indoor position hold
-- reliable person detection in the dark, with animals and objects filtered out
-- random patrol that covers every zone within a set time window
-- photo capture and alarm trigger on detection
-- end-to-end demo: patrol, detect, photograph, alert, remote takeover
+1. bench-validate the flight hardware
+2. first rc hover on the f450
+3. indoor flight without gps
+4. detect a person and alert a guard
+5. communications and location test
+6. full patrol demo
+
+targets for the demo (goals, not results): 5-minute stable flight, 0.5 m position hold, 90%+ person detection in the dark, alert in under 2 s, 100% zone coverage per patrol.
+
+budget: $1,500 total, all in.
 
 ---
 
 ## status
 
-in development. uw bothell electrical engineering capstone, 2026 to 2027.
+in development.
 
-- flight controller v1.0: built and assembled, bring-up in progress
-- test airframe: assembly in progress
-- sensing, patrol logic and alerts: planned
+- flight controller v1.0 (custom): built, failed bring-up. dropped for the prototype.
+- commercial flight controller and compute: selected, parts being ordered.
+- f450 test airframe: assembled.
+- early position test data and scripts are in `simulation/` and `software/` (not yet analyzed).
+- sensing, patrol logic and alerts: planned.
+
+---
+
+## repo layout
+
+- `hardware/`: custom flight controller v1.0 (kicad, bom, gerbers, assembly)
+- `mechanical/`: cad
+- `simulation/`: px4 sitl and ros 2 simulation, test data
+- `software/`: companion computer code
+- `docs/`: design documents
 
 ---
 
 ## team
 
-built by a four-person electrical engineering capstone team at the university of washington bothell, supervised by dr. hannachi.
+- cris r. martinez hernandez: co-founder, systems engineer
+- howard sin: co-founder, hardware lead
+- abraham chen: co-founder, ml / software lead
+- frank ma: co-founder, mechanical, power and structures lead
 
-- cris r. martinez hernandez
-- abraham chen
-- frank ma
-- howard sin
+contact: cris0105mh@gmail.com
 
 ---
 
 ## built with
 
-- stm32f405 / stm32f103 (flight controller mcus)
-- px4 autopilot
-- nvidia jetson nano (onboard compute)
-- ros2 and mavlink
+- px4 autopilot and mavlink
+- pixhawk 6c mini
+- nvidia jetson orin nano super
+- ros 2
 - opencv / python (perception)
 - kicad (pcb design)
-- platformio (firmware)
 
 ---
 
