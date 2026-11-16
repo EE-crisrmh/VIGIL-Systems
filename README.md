@@ -4,8 +4,6 @@
 
 an autonomous drone that patrols a building at night alongside the security guard, so nobody has to walk a dark warehouse alone.
 
-*working name. the project was previously called port, then lumaway.*
-
 ---
 
 ## the problem
@@ -96,10 +94,10 @@ in development.
 
 ## team
 
-- cris r. martinez hernandez: co-founder, systems engineer
-- howard sin: co-founder, hardware lead
-- abraham chen: co-founder, ml / software lead
-- frank ma: co-founder, mechanical, power and structures lead
+- cris r. martinez hernandez: systems engineer
+- howard sin: hardware lead
+- abraham chen: ml / software lead
+- frank ma: mechanical, power and structures lead
 
 contact: cris0105mh@gmail.com
 
