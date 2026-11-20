@@ -41,7 +41,7 @@ our first custom flight controller (v1.0) failed bring-up on nov 8, 2026: vbat s
 | indoor position | bluetooth trilateration | 2d lidar mapping + optical flow (bluetooth kept as an optional experiment) |
 | test platform | custom airframe | f450 frame |
 
-the custom flight controller files stay in `hardware/` as a record of what we built and what went wrong.
+the custom flight controller files stay in `hardware/old-hardware-stack/` as a record of what we built and what went wrong.
 
 ---
 
@@ -86,7 +86,7 @@ in development.
 
 ## repo layout
 
-- `hardware/`: custom flight controller v1.0 (kicad, bom, gerbers, assembly)
+- `hardware/old-hardware-stack/`: custom flight controller v1.0, dropped after failed bring-up (kicad, bom, gerbers, assembly)
 - `mechanical/`: cad
 - `simulation/`: px4 sitl and ros 2 simulation, test data
 - `software/`: companion computer code
