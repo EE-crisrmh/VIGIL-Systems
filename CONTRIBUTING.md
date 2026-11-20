@@ -70,7 +70,7 @@ then go to the repo on github, click "compare & pull request", write a sentence 
 
 ## 3. where things go
 
-- `hardware/`: custom flight controller v1.0 (kicad, bom, gerbers, assembly)
+- `hardware/old-hardware-stack/`: custom flight controller v1.0, dropped after failed bring-up (kicad, bom, gerbers, assembly)
 - `mechanical/`: cad
 - `simulation/`: px4 sitl and ros 2 simulation, test data
 - `software/`: companion computer code (ml, detection, patrol logic)
