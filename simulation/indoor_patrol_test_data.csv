@@ -1,0 +1,7 @@
+visit_number,zone,position_x,position_y,notification_sent,thermal_frame
+1,west,1,1,False,
+2,south,4,2,False,
+3,east,7,1,True,"[21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 32, 33, 32]"
+4,south,4,2,False,
+5,west,1,1,False,
+6,east,7,1,False,
