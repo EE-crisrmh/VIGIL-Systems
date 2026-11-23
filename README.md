@@ -140,9 +140,9 @@ in development.
 ## team
 
 - cris r. martinez hernandez: systems engineer
-- howard sin: hardware lead
-- abraham chen: ml / software lead
-- frank ma: mechanical, power and structures lead
+- howard sin: hardware engineer
+- abraham chen: ml / software engineer
+- frank ma: mechanical, power and structures engineer
 
 contact: cris0105mh@gmail.com
 
