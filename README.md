@@ -48,9 +48,11 @@ the custom flight controller files stay in `hardware/old-hardware-stack/` as a r
 ## the system
 
 ```
-battery -> power distribution -> 4 escs -> 4 motors
-                |-> pixhawk 6c mini (px4): stabilization, state estimation (ekf2), flight modes, failsafes
-                |-> jetson orin nano super (ros 2): mapping, patrol logic, person detection, alerts
+4s lipo -> main fuse -> matek fchub-12s v2 (pdb + power module)
+                          |-> battery v  -> 4 escs -> 4 motors
+                          |-> 5.1 v      -> pixhawk 6c mini (px4): stabilization, state estimation (ekf2), flight modes, failsafes
+                          |-> 12 v       -> jetson orin nano super (ros 2): mapping, patrol logic, person detection, alerts
+                          |-> current + voltage sense -> pixhawk (battery monitoring)
 
 rc receiver   -> pixhawk   (manual control, safety override)
 h-flow        -> pixhawk   (can bus: optical flow + height, holds position without gps)
@@ -69,24 +71,32 @@ jetson -> guard            (alert, method tbd)
 - **2d lidar:** rplidar a1 class, on top of the drone. maps walls, columns and racks.
 - **optical flow + rangefinder:** holybro h-flow, pointing down. plugs into the pixhawk can port (dronecan), has its own ir light for low light, reads height from 8 cm to 30 m. replaces the matek 3901-l0x, which px4 doesn't support.
 
-**airframe:** 450 mm frame with br2212 motors and 4 readytosky escs. moving from the f450 fiberglass frame to a carbon fiber 450 mm frame for stiffness (less vibration reaching the flight controller). battery (3s vs 4s) is still being decided from the weight and power budget. estimated all-up weight about 1.7 kg (not yet verified), ceiling 2-3 kg for the prototype.
+**power:**
+- **battery:** tattu 5200 mah 4s 35c lipo (14.8 v nominal, 16.8 v full). good for about 182 a continuous, which covers the 162 a worst case (4 escs at their 40 a limit + jetson + sensors).
+- **power board:** matek fchub-12s v2. one board does the power distribution and the power module job: battery voltage to the escs, 5.1 v / 5 a to the pixhawk and sensors, 12 v / 4 a to the jetson (its jack takes 9-20 v, we plan for its 25 w mode), plus battery current and voltage sensing for px4.
+- **main fuse:** between the battery and the power board. rating picked once we have 4s motor thrust data.
+- **no power switch.** plugging in the battery turns it on. motor safety is in px4 (safety switch + arming) and an rc kill switch.
+
+**airframe:** 450 mm frame with br2212 motors and 4 readytosky 40 a escs. moving from the f450 fiberglass frame to a carbon fiber 450 mm frame for stiffness (less vibration reaching the flight controller). estimated all-up weight about 1.7 kg (not yet verified), ceiling 2-3 kg for the prototype.
 
 ---
 
 ## plan and targets
 
-1. bench-validate the flight hardware
-2. first rc hover on the f450
-3. indoor flight without gps
-4. detect a person and alert a guard
-5. communications and location test
-6. full patrol demo
+1. validate the full stack in simulation (px4 sitl, optical flow only, jetson to px4 link)
+2. bench-validate the flight hardware (after parts arrive)
+3. first rc hover on the 450 frame
+4. indoor flight without gps
+5. detect a person and alert a guard
+6. communications and location test
+7. full patrol demo
 
 targets for the demo (goals, not results): 5-minute stable flight, 0.5 m position hold, 90%+ person detection in the dark, alert in under 2 s, 100% zone coverage per patrol.
 
 key dates:
-- dec 11, 2026: parts list and design decisions confirmed (battery, escs, sensors)
-- january 2027: parts ordered when the 495 capstone class starts
+- dec 11, 2026: parts list and design decisions confirmed
+- dec 18, 2026: simulation gate (sitl, optical flow hold, jetson to px4 link)
+- january 2027: parts ordered when the 495 capstone class starts, then hardware bench validation
 - jun 4, 2027: full patrol demo
 
 budget: $1,500 total, all in.
@@ -109,7 +119,8 @@ in development.
 
 - flight controller v1.0 (custom): built, failed bring-up. dropped for the prototype.
 - commercial flight controller and compute: selected. parts list being confirmed by dec 11, ordering in january 2027.
-- sensors: thermal camera and optical flow sensor chosen (nov 22), pending final confirmation.
+- sensors, battery and power board chosen (nov 22): flir lepton 3.5, holybro h-flow, tattu 4s 5200, matek fchub-12s v2. pending final confirmation by dec 11.
+- still open: 4s motor thrust table (sets fuse rating and flight time), jetson to px4 link method, guard alert method.
 - f450 test airframe: assembled. carbon fiber 450 mm frame planned.
 - simulation: px4 sitl takeoff, hover and a simulated warehouse patrol running. scripts and test data are in `simulation/` and `software/` (not yet analyzed). optical flow only (no gps) simulation in progress.
 - mapping, person detection and alerts: planned.
@@ -144,6 +155,7 @@ contact: cris0105mh@gmail.com
 - nvidia jetson orin nano super
 - ros 2
 - holybro h-flow (dronecan), flir lepton 3.5, rplidar
+- matek fchub-12s v2 power board
 - opencv / python (perception)
 - kicad (pcb design)
 
