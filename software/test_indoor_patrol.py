@@ -6,8 +6,11 @@ The prototype parts list in the root README names an RPLIDAR A1-class
 This test models a horizontal scan and uses a small known warehouse map.
 """
 
+import argparse
+import csv
 import math
 import random
+import sys
 import unittest
 from collections import deque
 
@@ -162,5 +165,69 @@ class IndoorPatrolTest(unittest.TestCase):
         self.assertFalse(person_candidate((21,) * 15 + (33,)))
 
 
+def run_demo(csv_output=None):
+    warehouse = Warehouse()
+    zone_visits = []
+    print("Warehouse map (# = wall, W/E/S = patrol zones)")
+    zone_markers = {cell: zone[0].upper() for zone, cell in ZONES.items()}
+    for y, row in enumerate(MAP):
+        print("".join(zone_markers.get((x, y), tile) for x, tile in enumerate(row)))
+    print("Coordinates are (x, y) from the upper-left corner.")
+    print()
+
+    def observe(target):
+        staying_in_place = target == warehouse.position
+        flow, height, scan, frame = warehouse.observe(target)
+        if staying_in_place:
+            zone = next(zone for zone, cell in ZONES.items() if cell == target)
+            candidate = person_candidate(frame)
+            peak = max(frame)
+            outcome = "person candidate" if candidate else "clear"
+            print(f"  Scan {zone}: thermal peak {peak} C, {outcome}")
+            east, west, south, north = scan
+            zone_visits.append({
+                "round": len(zone_visits) // len(ZONES) + 1,
+                "zone": zone,
+                "x": target[0],
+                "y": target[1],
+                "lidar_east_cells": east,
+                "lidar_west_cells": west,
+                "lidar_south_cells": south,
+                "lidar_north_cells": north,
+                "thermal_peak_c": peak,
+                "person_candidate": candidate,
+                "alert_sent": False,
+            })
+        else:
+            print(f"Move to {target}: LiDAR wall distances E/W/S/N = {scan} cells")
+        return flow, height, scan, frame
+
+    def notify(alert):
+        zone_visits[-1]["alert_sent"] = True
+        print(f"  ALERT: possible person in {alert['zone']} at {alert['position_m']}")
+
+    rounds = 2
+    visited = patrol(observe, rounds, notify, random.Random(0))
+    for round_index in range(rounds):
+        first = round_index * len(ZONES)
+        route = " -> ".join(visited[first:first + len(ZONES)])
+        print(f"Round {round_index + 1}: {route}")
+
+
+    if csv_output is not None:
+        with open(csv_output, "w", newline="", encoding="utf-8") as output:
+            writer = csv.DictWriter(output, fieldnames=list(zone_visits[0]))
+            writer.writeheader()
+            writer.writerows(zone_visits)
+        print(f"Saved {len(zone_visits)} zone visits to {csv_output}")
+
+
 if __name__ == "__main__":
-    unittest.main()
+    if "--demo" in sys.argv[1:]:
+        parser = argparse.ArgumentParser(description="Run the warehouse patrol demo.")
+        parser.add_argument("--demo", action="store_true", help="run the simulation")
+        parser.add_argument("--csv-output", help="write zone visits to this CSV path")
+        args = parser.parse_args()
+        run_demo(args.csv_output)
+    else:
+        unittest.main()
